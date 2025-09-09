@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "paths": {
+    "/bedrock": {
+      "name": "/bedrock",
+      "lambdaFunction": "myBedrockFunction",
+      "permissions": {
+        "setting": "protected",
+        "auth": [
+          "create",
+          "read",
+          "update",
+          "delete"
+        ],
+        "guest": [
+          "create",
+          "read"
+        ]
+      }
+    },
+    "/free": {
+      "name": "/free",
+      "lambdaFunction": "myBedrockFunction",
+      "permissions": {
+        "setting": "open"
+      }
+    },
+    "/usage": {
+      "name": "/usage",
+      "lambdaFunction": "chatappUsageGet",
+      "permissions": {
+        "setting": "private",
+        "auth": [
+          "read"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "IdentityPoolId": "us-east-1:554d5557-cdd0-4021-abf7-181aa46e1d8f",
+  "IdentityPoolName": "rnchatui_identitypool_22df102b__dev",
+  "AllowUnauthenticatedIdentities": true,
+  "CognitoIdentityProviders": [
+    {
+      "ProviderName": "cognito-idp.us-east-1.amazonaws.com/us-east-1_XYiu4he7O",
+      "ClientId": "7prus9jr6vndc0sv8mgmgq6kta",
+      "ServerSideTokenCheck": true
+    }
+  ]
+}

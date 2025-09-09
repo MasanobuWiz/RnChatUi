@@ -1,0 +1,15 @@
+{
+    "IdentityPoolId":  "us-east-1:ff0bc2ea-32b4-4e94-8ed0-f55f0792ca8a",
+    "IdentityPoolName":  "amplify_backend_manager_d3kf1nqlzsfgu",
+    "AllowUnauthenticatedIdentities":  true,
+    "CognitoIdentityProviders":  [
+                                     {
+                                         "ServerSideTokenCheck":  true,
+                                         "ProviderName":  "cognito-idp.us-east-1.amazonaws.com/us-east-1_o1GRtGvwF",
+                                         "ClientId":  "ssmfceus4avt8h2b0bbbsfog0"
+                                     }
+                                 ],
+    "IdentityPoolTags":  {
+
+                         }
+}

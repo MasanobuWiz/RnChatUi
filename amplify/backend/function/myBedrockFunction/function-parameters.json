@@ -1,0 +1,13 @@
+{
+  "lambdaLayers": [],
+  "environmentVariableList": [
+    {
+      "cloudFormationParameterName": "inferenceProfileArn",
+      "environmentVariableName": "INFERENCE_PROFILE_ARN"
+    },
+    {
+      "cloudFormationParameterName": "paidForAuth",
+      "environmentVariableName": "PAID_FOR_AUTH"
+    }
+  ]
+}

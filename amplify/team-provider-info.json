@@ -1,0 +1,60 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-rnchatui-dev-fcbf4-authRole",
+      "UnauthRoleArn": "arn:aws:iam::005965605606:role/amplify-rnchatui-dev-fcbf4-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::005965605606:role/amplify-rnchatui-dev-fcbf4-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-rnchatui-dev-fcbf4-deployment",
+      "UnauthRoleName": "amplify-rnchatui-dev-fcbf4-unauthRole",
+      "StackName": "amplify-rnchatui-dev-fcbf4",
+      "StackId": "arn:aws:cloudformation:us-east-1:005965605606:stack/amplify-rnchatui-dev-fcbf4/4581b160-7182-11f0-97d3-0ed09be1a079",
+      "AmplifyAppId": "d3kf1nqlzsfgu",
+      "APIGatewayAuthURL": "https://s3.amazonaws.com/amplify-rnchatui-dev-fcbf4-deployment/amplify-cfn-templates/api/APIGatewayAuthStack.json",
+      "AuthTriggerTemplateURL": "https://s3.amazonaws.com/amplify-rnchatui-dev-fcbf4-deployment/amplify-cfn-templates/auth/auth-trigger-cloudformation-template.json"
+    },
+    "categories": {
+      "function": {
+        "myBedrockFunction": {
+          "deploymentBucketName": "amplify-rnchatui-dev-fcbf4-deployment",
+          "s3Key": "amplify-builds/myBedrockFunction-6f4e5765734b58334954-build.zip",
+          "inferenceProfileArn": "arn:aws:bedrock:us-east-1:005965605606:application-inference-profile/dj34cq1y76fn",
+          "paidForAuth": "true"
+        },
+        "chatappUsageGet": {
+          "tableName": "AiApp",
+          "allowOrigin": "http://localhost:9000",
+          "tzRegion": "Asia/Tokyo",
+          "freeLimit": "500",
+          "freeFastLimit": "100",
+          "deploymentBucketName": "amplify-rnchatui-dev-fcbf4-deployment",
+          "s3Key": "amplify-builds/chatappUsageGet-73426f6d68504f6c7531-build.zip"
+        },
+        "preSignupLinker": {
+          "deploymentBucketName": "amplify-rnchatui-dev-fcbf4-deployment",
+          "s3Key": "amplify-builds/preSignupLinker-412b4f63594d562b342f-build.zip"
+        },
+        "rnchatuiPostConfirmation": {
+          "deploymentBucketName": "amplify-rnchatui-dev-fcbf4-deployment",
+          "s3Key": "amplify-builds/rnchatuiPostConfirmation-536763502f33434e3156-build.zip"
+        },
+        "rnchatuiPreSignup": {
+          "deploymentBucketName": "amplify-rnchatui-dev-fcbf4-deployment",
+          "s3Key": "amplify-builds/rnchatuiPreSignup-59774e5a6c6942796551-build.zip"
+        }
+      },
+      "auth": {
+        "rnchatui": {}
+      },
+      "api": {
+        "myBedrockApi": {}
+      },
+      "storage": {
+        "myBedrockStorage": {}
+      },
+      "hosting": {
+        "S3AndCloudFront": {}
+      }
+    }
+  }
+}

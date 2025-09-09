@@ -1,0 +1,253 @@
+{
+  "api": {
+    "myBedrockApi": {
+      "dependsOn": [
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "myBedrockFunction"
+        },
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "chatappUsageGet"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "API Gateway"
+    }
+  },
+  "auth": {
+    "rnchatui": {
+      "dependsOn": [
+        {
+          "attributes": [
+            "Arn",
+            "Name"
+          ],
+          "category": "function",
+          "resourceName": "rnchatuiPostConfirmation",
+          "triggerProvider": "Cognito"
+        },
+        {
+          "attributes": [
+            "Arn",
+            "Name"
+          ],
+          "category": "function",
+          "resourceName": "rnchatuiPreSignup",
+          "triggerProvider": "Cognito"
+        }
+      ],
+      "frontendAuthConfig": {
+        "mfaConfiguration": "OPTIONAL",
+        "mfaTypes": [
+          "TOTP"
+        ],
+        "passwordProtectionSettings": {
+          "passwordPolicyCharacters": [],
+          "passwordPolicyMinLength": 8
+        },
+        "signupAttributes": [
+          "EMAIL"
+        ],
+        "socialProviders": [
+          "GOOGLE",
+          "AMAZON"
+        ],
+        "usernameAttributes": [],
+        "verificationMechanisms": [
+          "EMAIL"
+        ]
+      },
+      "providerPlugin": "awscloudformation",
+      "service": "Cognito",
+      "serviceType": "managed"
+    }
+  },
+  "function": {
+    "chatappUsageGet": {
+      "build": true,
+      "dependsOn": [],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "myBedrockFunction": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "preSignupLinker": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "rnchatuiPostConfirmation": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "rnchatuiPreSignup": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    }
+  },
+  "hosting": {
+    "S3AndCloudFront": {
+      "providerPlugin": "awscloudformation",
+      "service": "S3AndCloudFront"
+    }
+  },
+  "parameters": {
+    "AMPLIFY_function_chatappUsageGet_allowOrigin": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "chatappUsageGet"
+        }
+      ]
+    },
+    "AMPLIFY_function_chatappUsageGet_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "chatappUsageGet"
+        }
+      ]
+    },
+    "AMPLIFY_function_chatappUsageGet_freeFastLimit": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "chatappUsageGet"
+        }
+      ]
+    },
+    "AMPLIFY_function_chatappUsageGet_freeLimit": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "chatappUsageGet"
+        }
+      ]
+    },
+    "AMPLIFY_function_chatappUsageGet_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "chatappUsageGet"
+        }
+      ]
+    },
+    "AMPLIFY_function_chatappUsageGet_tableName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "chatappUsageGet"
+        }
+      ]
+    },
+    "AMPLIFY_function_chatappUsageGet_tzRegion": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "chatappUsageGet"
+        }
+      ]
+    },
+    "AMPLIFY_function_myBedrockFunction_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "myBedrockFunction"
+        }
+      ]
+    },
+    "AMPLIFY_function_myBedrockFunction_inferenceProfileArn": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "myBedrockFunction"
+        }
+      ]
+    },
+    "AMPLIFY_function_myBedrockFunction_paidForAuth": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "myBedrockFunction"
+        }
+      ]
+    },
+    "AMPLIFY_function_myBedrockFunction_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "myBedrockFunction"
+        }
+      ]
+    },
+    "AMPLIFY_function_preSignupLinker_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "preSignupLinker"
+        }
+      ]
+    },
+    "AMPLIFY_function_preSignupLinker_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "preSignupLinker"
+        }
+      ]
+    },
+    "AMPLIFY_function_rnchatuiPostConfirmation_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "rnchatuiPostConfirmation"
+        }
+      ]
+    },
+    "AMPLIFY_function_rnchatuiPostConfirmation_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "rnchatuiPostConfirmation"
+        }
+      ]
+    },
+    "AMPLIFY_function_rnchatuiPreSignup_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "rnchatuiPreSignup"
+        }
+      ]
+    },
+    "AMPLIFY_function_rnchatuiPreSignup_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "rnchatuiPreSignup"
+        }
+      ]
+    }
+  },
+  "storage": {
+    "myBedrockStorage": {
+      "dependsOn": [],
+      "providerPlugin": "awscloudformation",
+      "service": "S3"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "IdentityPoolId": "us-east-1:ff0bc2ea-32b4-4e94-8ed0-f55f0792ca8a",
+  "Roles": {
+    "authenticated": "arn:aws:iam::005965605606:role/amplify-rnchatui-dev-fcbf4-authRole",
+    "unauthenticated": "arn:aws:iam::005965605606:role/amplify-rnchatui-dev-fcbf4-unauthRole"
+  },
+  "RoleMappings": {}
+}

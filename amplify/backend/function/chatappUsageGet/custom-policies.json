@@ -1,0 +1,9 @@
+﻿[
+  {
+    "Action": ["dynamodb:GetItem", "dynamodb:Query"],
+    "Resource": [
+      "arn:aws:dynamodb:us-east-1:005965605606:table/AiApp",
+      "arn:aws:dynamodb:us-east-1:005965605606:table/AiApp/index/*"
+    ]
+  }
+]

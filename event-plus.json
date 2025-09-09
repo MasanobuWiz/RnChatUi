@@ -1,0 +1,1 @@
+{"requestContext":{"identity":{"cognitoIdentityId":"us-east-1:dummy-id-for-test","cognitoAuthenticationType":"authenticated"}},"isBase64Encoded":false,"path":"/bedrock","httpMethod":"POST","resource":"/bedrock","body":"{\"input\":\"hello from plus\"}","headers":{"Content-Type":"application/json"}}

@@ -1,0 +1,31 @@
+{
+  "extends": "@react-native/typescript-config/tsconfig.json",
+  "compilerOptions": {
+    "moduleResolution": "node16",
+    "target": "esnext",
+    "module": "node20",
+    "lib": ["esnext", "dom"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": false,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "noFallthroughCasesInSwitch": true,
+    "types": []
+  },
+  "include": [
+    "src",
+    "src/types/**/*.d.ts",
+    "App.tsx",
+    "index.web.js"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

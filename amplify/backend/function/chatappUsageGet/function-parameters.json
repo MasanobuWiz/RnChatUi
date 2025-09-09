@@ -1,0 +1,26 @@
+{
+  "lambdaLayers": [],
+  "environmentVariableList": [
+    {
+      "cloudFormationParameterName": "tableName",
+      "environmentVariableName": "TABLE_NAME"
+    },
+    {
+      "cloudFormationParameterName": "allowOrigin",
+      "environmentVariableName": "ALLOW_ORIGIN"
+    },
+    {
+      "cloudFormationParameterName": "tzRegion",
+      "environmentVariableName": "TZ_REGION"
+    },
+    {
+      "cloudFormationParameterName": "freeLimit",
+      "environmentVariableName": "FREE_LIMIT"
+    },
+    {
+      "cloudFormationParameterName": "freeFastLimit",
+      "environmentVariableName": "FREE_FAST_LIMIT"
+    }
+  ],
+  "permissions": {}
+}

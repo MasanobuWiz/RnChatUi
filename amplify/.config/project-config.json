@@ -1,0 +1,16 @@
+{
+  "whyContinueWithGen1": "Gen 2 is missing features I need from Gen 1",
+  "projectName": "RnChatUi",
+  "version": "3.1",
+  "frontend": "javascript",
+  "javascript": {
+    "framework": "none",
+    "config": {
+      "SourceDir": ".",
+      "DistributionDir": "web-build",
+      "BuildCommand": "npm run build-web",
+      "StartCommand": "npm run web"
+    }
+  },
+  "providers": ["awscloudformation"]
+}
