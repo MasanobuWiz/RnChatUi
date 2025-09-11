@@ -27,7 +27,6 @@ import {
 } from '../../services/auth';
 
 const CLOUDFRONT_URL = 'https://d20kh7meb2dq3y.cloudfront.net';
-// S3にもローカルにも同じファイル名で設置してください
 const googleIcon = { uri: `${CLOUDFRONT_URL}/assets/icon-google-24.png` };
 const amazonIcon = { uri: `${CLOUDFRONT_URL}/assets/icon-amazon-24.png` };
 
@@ -36,12 +35,14 @@ interface AuthModalProps {
   onClose: () => void;
   onAuthSuccess: (user: any) => void;
   initialMode?: 'signin' | 'signup';
+  onAuthError?: (message: string) => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
   visible,
   onClose,
   onAuthSuccess,
+  onAuthError,
   initialMode = 'signin',
 }) => {
   const [mode, setMode] = useState<'signin' | 'signup' | 'confirm'>(initialMode);
@@ -50,11 +51,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [confirmCode, setConfirmCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<'google' | 'amazon' | null>(null);
+  const [formError, setFormError] = useState('');
 
   useEffect(() => {
-    console.log('[AuthModal] CloudFront image-buttons build is active');
-    console.log('[AuthModal] CloudFront URL:', CLOUDFRONT_URL);
-  }, []);
+    setFormError('');
+  }, [mode, visible]);
 
   useEffect(() => {
     const checkOAuthCallback = async () => {
@@ -75,35 +76,44 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 idToken,
                 sub: userInfo?.sub,
               };
+              setFormError('');
               onAuthSuccess(user);
               handleClose();
             }
           }
         }
-      } catch (e) {
-        console.warn('OAuth callback error:', (e as any)?.message || e);
+      } catch (e: any) {
+        setError(e?.message || 'OAuth callback error');
       }
     };
     checkOAuthCallback();
+    // eslint-disable-next-line
   }, [visible]);
+
+  const setError = (msg: string) => {
+    setFormError(msg);
+    onAuthError?.(msg);
+  };
 
   const handleSignIn = async () => {
     if (!email || !password) {
-      Alert.alert('エラー', 'メールアドレスとパスワードを入力してください');
+      setError('メールアドレスとパスワードを入力してください');
       return;
     }
     setLoading(true);
+    setFormError('');
     try {
       await login(email, password);
       const idToken = await getIdToken();
       if (idToken) {
+        setFormError('');
         onAuthSuccess({ username: email.split('@')[0], email, idToken });
         handleClose();
       } else {
-        Alert.alert('エラー', 'トークン取得に失敗しました');
+        setError('トークン取得に失敗しました');
       }
     } catch (error: any) {
-      Alert.alert('サインインエラー', error.message || 'サインインに失敗しました');
+      setError(error.message || 'サインインに失敗しました');
     } finally {
       setLoading(false);
     }
@@ -111,16 +121,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleSignUp = async () => {
     if (!email || !password) {
-      Alert.alert('エラー', 'メールアドレスとパスワードを入力してください');
+      setError('メールアドレスとパスワードを入力してください');
       return;
     }
     setLoading(true);
+    setFormError('');
     try {
       await register(email, password);
       setMode('confirm');
-      Alert.alert('確認', '確認コードがメールに送信されました');
+      setFormError('確認コードがメールに送信されました');
     } catch (error: any) {
-      Alert.alert('サインアップエラー', error.message || 'サインアップに失敗しました');
+      setError(error.message || 'サインアップに失敗しました');
     } finally {
       setLoading(false);
     }
@@ -128,16 +139,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleConfirm = async () => {
     if (!email || !confirmCode) {
-      Alert.alert('エラー', 'メールアドレスと確認コードを入力してください');
+      setError('メールアドレスと確認コードを入力してください');
       return;
     }
     setLoading(true);
+    setFormError('');
     try {
       await confirm(email, confirmCode);
       setMode('signin');
-      Alert.alert('成功', 'アカウントが確認されました。サインインしてください。');
+      setFormError('アカウントが確認されました。サインインしてください。');
     } catch (error: any) {
-      Alert.alert('確認エラー', error.message || '確認に失敗しました');
+      setError(error.message || '確認に失敗しました');
     } finally {
       setLoading(false);
     }
@@ -145,6 +157,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleSocialLogin = async (provider: 'google' | 'amazon') => {
     setSocialLoading(provider);
+    setFormError('');
     try {
       if (provider === 'google') {
         await signInWithGoogle();
@@ -152,8 +165,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         await signInWithAmazon();
       }
     } catch (error: any) {
+      setError(error.message || 'ソーシャルログインに失敗しました');
       setSocialLoading(null);
-      Alert.alert('ソーシャルログインエラー', error.message || 'ログインに失敗しました');
     }
   };
 
@@ -163,6 +176,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setConfirmCode('');
     setLoading(false);
     setSocialLoading(null);
+    setFormError('');
   };
 
   const handleClose = () => {
@@ -217,6 +231,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   </Text>
                 </View>
                 <Text style={styles.title}>{getTitle()}</Text>
+                {formError ?
+                  (<Text style={{ color: 'red', marginBottom: 8, textAlign: 'center' }}>{formError}</Text>)
+                  : null}
 
                 {mode !== 'confirm' && (
                   <View style={styles.socialSection}>
@@ -246,7 +263,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     </TouchableOpacity>
                   </View>
                 )}
-
                 {mode !== 'confirm' && (
                   <View style={styles.dividerContainer}>
                     <View style={styles.dividerLine} />
@@ -301,6 +317,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     )}
                   </TouchableOpacity>
                 </View>
+
                 {mode !== 'confirm' && (
                   <Text style={styles.termsText}>
                     By continuing, you agree to xAI's{' '}
@@ -343,18 +360,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ffffff'
-  },
-  splitContainer: {
-    flex: 1,
-    flexDirection: 'row'
-  },
-  formSection: {
-    flex: 1,
-    backgroundColor: '#ffffff'
-  },
+  container: { flex: 1, backgroundColor: '#ffffff' },
+  splitContainer: { flex: 1, flexDirection: 'row' },
+  formSection: { flex: 1, backgroundColor: '#ffffff' },
   formContent: {
     flexGrow: 1,
     paddingHorizontal: 40,
@@ -364,10 +372,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: '100%',
   },
-  imageSection: {
-    flex: 1,
-    backgroundColor: '#000000'
-  },
+  imageSection: { flex: 1, backgroundColor: '#000000' },
   gradientOverlay: {
     flex: 1,
     backgroundColor: '#0f172a',
@@ -385,27 +390,9 @@ const styles = StyleSheet.create({
     borderRadius: 200,
     opacity: 0.1,
   },
-  decorativeElement1: {
-    width: 400,
-    height: 400,
-    backgroundColor: '#3b82f6',
-    top: '20%',
-    left: '10%',
-  },
-  decorativeElement2: {
-    width: 300,
-    height: 300,
-    backgroundColor: '#8b5cf6',
-    bottom: '25%',
-    right: '15%',
-  },
-  decorativeElement3: {
-    width: 200,
-    height: 200,
-    backgroundColor: '#06b6d4',
-    top: '60%',
-    left: '25%',
-  },
+  decorativeElement1: { width: 400, height: 400, backgroundColor: '#3b82f6', top: '20%', left: '10%' },
+  decorativeElement2: { width: 300, height: 300, backgroundColor: '#8b5cf6', bottom: '25%', right: '15%' },
+  decorativeElement3: { width: 200, height: 200, backgroundColor: '#06b6d4', top: '60%', left: '25%' },
   header: {
     alignItems: 'center',
     marginBottom: 32,
