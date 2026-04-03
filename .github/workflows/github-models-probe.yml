@@ -1,0 +1,232 @@
+name: GitHub Models Probe
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/github-models-probe.yml
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Exact GitHub Models ID to probe
+        required: true
+        default: openai/gpt-5-chat
+        type: string
+      prompt:
+        description: Prompt sent to the model
+        required: true
+        default: Reply with exactly OK.
+        type: string
+
+permissions:
+  contents: read
+  models: read
+
+concurrency:
+  group: github-models-probe-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MODEL_ID: ${{ inputs.model || 'openai/gpt-5-chat' }}
+      PROMPT: ${{ inputs.prompt || 'Reply with exactly OK.' }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            API_VERSION: '2026-03-10'
+    steps:
+      - name: Probe catalog
+        id: catalog
+        shell: python
+        run: |
+          import json
+          import os
+          import urllib.error
+          import urllib.request
+
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+              "X-GitHub-Api-Version": os.environ["API_VERSION"],
+          }
+          request = urllib.request.Request(
+              "https://models.github.ai/catalog/models",
+              headers=headers,
+          )
+
+          status = None
+          raw_body = ""
+          try:
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  status = response.getcode()
+                  raw_body = response.read().decode("utf-8")
+          except urllib.error.HTTPError as error:
+              status = error.code
+              raw_body = error.read().decode("utf-8")
+          except Exception as error:
+              status = 0
+              raw_body = json.dumps({"error": str(error)})
+
+          try:
+              payload = json.loads(raw_body) if raw_body else None
+          except json.JSONDecodeError:
+              payload = {"raw": raw_body}
+
+          if isinstance(payload, list):
+              models = payload
+          elif isinstance(payload, dict):
+              models = payload.get("models") or payload.get("items") or []
+          else:
+              models = []
+
+          model_ids = [item.get("id") for item in models if isinstance(item, dict) and item.get("id")]
+          model_in_catalog = os.environ["MODEL_ID"] in model_ids
+          result = {
+              "status": status,
+              "model": os.environ["MODEL_ID"],
+              "model_in_catalog": model_in_catalog,
+              "catalog_count": len(model_ids),
+              "sample_ids": model_ids[:20],
+              "payload": payload,
+          }
+
+          with open("catalog-response.json", "w", encoding="utf-8") as handle:
+              json.dump(result, handle, ensure_ascii=True, indent=2)
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as handle:
+              handle.write(f"status={status}\n")
+              handle.write(f"model_in_catalog={'true' if model_in_catalog else 'false'}\n")
+
+          print(json.dumps({
+              "catalog_status": status,
+              "model": os.environ["MODEL_ID"],
+              "model_in_catalog": model_in_catalog,
+              "catalog_count": len(model_ids),
+          }, ensure_ascii=True))
+
+      - name: Probe inference
+        id: inference
+        shell: python
+        run: |
+          import json
+          import os
+          import urllib.error
+          import urllib.request
+
+          body = json.dumps({
+              "model": os.environ["MODEL_ID"],
+              "messages": [{"role": "user", "content": os.environ["PROMPT"]}],
+              "temperature": 0,
+              "max_tokens": 32,
+          }).encode("utf-8")
+
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+              "Content-Type": "application/json",
+              "X-GitHub-Api-Version": os.environ["API_VERSION"],
+          }
+          request = urllib.request.Request(
+              "https://models.github.ai/inference/chat/completions",
+              data=body,
+              headers=headers,
+              method="POST",
+          )
+
+          status = None
+          raw_body = ""
+          try:
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  status = response.getcode()
+                  raw_body = response.read().decode("utf-8")
+          except urllib.error.HTTPError as error:
+              status = error.code
+              raw_body = error.read().decode("utf-8")
+          except Exception as error:
+              status = 0
+              raw_body = json.dumps({"error": str(error)})
+
+          try:
+              payload = json.loads(raw_body) if raw_body else None
+          except json.JSONDecodeError:
+              payload = {"raw": raw_body}
+
+          assistant_message = None
+          if isinstance(payload, dict):
+              choices = payload.get("choices") or []
+              if choices:
+                  message = choices[0].get("message") or {}
+                  assistant_message = message.get("content")
+
+          result = {
+              "status": status,
+              "model": os.environ["MODEL_ID"],
+              "assistant_message": assistant_message,
+              "payload": payload,
+          }
+
+          with open("inference-response.json", "w", encoding="utf-8") as handle:
+              json.dump(result, handle, ensure_ascii=True, indent=2)
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as handle:
+              handle.write(f"status={status}\n")
+              handle.write(f"assistant_message={json.dumps(assistant_message or '')}\n")
+
+          print(json.dumps({
+              "inference_status": status,
+              "model": os.environ["MODEL_ID"],
+              "assistant_message": assistant_message,
+          }, ensure_ascii=True))
+
+      - name: Write summary
+        if: always()
+        shell: python
+        run: |
+          import json
+          import os
+          import sys
+
+          def load(path):
+              with open(path, "r", encoding="utf-8") as handle:
+                  return json.load(handle)
+
+          catalog = load("catalog-response.json")
+          inference = load("inference-response.json")
+
+          summary_lines = [
+              "# GitHub Models Probe",
+              "",
+              f"- Model: `{os.environ['MODEL_ID']}`",
+              f"- Catalog status: `{catalog['status']}`",
+              f"- Model visible in catalog: `{catalog['model_in_catalog']}`",
+              f"- Inference status: `{inference['status']}`",
+              f"- Assistant message: `{str(inference.get('assistant_message') or '')[:200]}`",
+              "",
+              "## Catalog sample",
+              "```json",
+              json.dumps(catalog.get("sample_ids", []), ensure_ascii=True, indent=2),
+              "```",
+              "",
+              "## Inference payload",
+              "```json",
+              json.dumps(inference.get("payload"), ensure_ascii=True, indent=2),
+              "```",
+          ]
+
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as handle:
+              handle.write("\n".join(summary_lines) + "\n")
+
+          print("PROBE_RESULT_START")
+          print(json.dumps({
+              "catalog_status": catalog["status"],
+              "model_in_catalog": catalog["model_in_catalog"],
+              "inference_status": inference["status"],
+              "assistant_message": inference.get("assistant_message"),
+              "error": inference.get("payload"),
+          }, ensure_ascii=True, indent=2))
+          print("PROBE_RESULT_END")
+
+          if catalog["status"] != 200 or inference["status"] != 200:
+              sys.exit(1)
