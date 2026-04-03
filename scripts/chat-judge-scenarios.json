@@ -1,0 +1,169 @@
+[
+  {
+    "id": "guest-rag-brief",
+    "channel": "guest",
+    "expectedLanguage": "ja",
+    "searchMode": "off",
+    "turns": [
+      "RAGとは何ですか？日本語で2文以内にまとめ、用途を1つだけ入れてください。"
+    ],
+    "rubric": [
+      "日本語で簡潔に回答していること。",
+      "RAG が検索と生成を組み合わせる考え方だと分かること。",
+      "用途を1つだけ自然に含めること。",
+      "前置きやステータス文を混ぜないこと。"
+    ],
+    "referenceAnswer": "RAGは、必要な情報を検索で取り出し、その内容を踏まえて生成モデルが回答を作る仕組みです。例えば社内FAQの回答精度を上げる用途で使われます。",
+    "hardChecks": {
+      "minReplyChars": 20,
+      "maxSentences": 2
+    },
+    "minOverallScore": 80,
+    "minCriterionScore": 3,
+    "bannedPhrases": [
+      "回答を準備しています",
+      "Thinking",
+      "(no response)"
+    ]
+  },
+  {
+    "id": "guest-memory-summary",
+    "channel": "guest",
+    "expectedLanguage": "ja",
+    "searchMode": "off",
+    "turns": [
+      "私の名前はモモです。",
+      "好きな色は青です。",
+      "旅行先は京都、予算は3万円、朝は遅め、新幹線を使いたいです。",
+      "ここまでの条件を箇条書きで6項目以内にまとめてください。"
+    ],
+    "rubric": [
+      "会話履歴から主要条件を落とさずに要約していること。",
+      "名前、色、京都、3万円、朝は遅め、新幹線の条件が保持されていること。",
+      "箇条書きとして読みやすいこと。",
+      "余計な設定を勝手に足しすぎないこと。"
+    ],
+    "referenceAnswer": "- 名前: モモ\n- 好きな色: 青\n- 行き先: 京都\n- 予算: 3万円\n- 朝は遅めに出発\n- 移動手段: 新幹線",
+    "hardChecks": {
+      "minReplyChars": 30,
+      "requireList": true,
+      "minListItems": 3,
+      "maxListItems": 6
+    },
+    "minOverallScore": 84,
+    "minCriterionScore": 3,
+    "strictKeywords": [
+      "モモ",
+      "青",
+      "京都",
+      "3万円",
+      "新幹線"
+    ],
+    "bannedPhrases": [
+      "回答を準備しています",
+      "Thinking",
+      "(no response)"
+    ]
+  },
+  {
+    "id": "guest-rag-brief-en",
+    "channel": "guest",
+    "expectedLanguage": "en",
+    "searchMode": "off",
+    "turns": [
+      "What is RAG? Answer in English in no more than two sentences and include exactly one practical use case."
+    ],
+    "rubric": [
+      "The answer is written in natural English.",
+      "It clearly explains that RAG combines retrieval with generation.",
+      "It includes exactly one practical use case.",
+      "It avoids filler, status text, and awkward phrasing."
+    ],
+    "referenceAnswer": "RAG combines retrieving relevant external information with generation so the model answers from grounded context. A practical use case is answering internal knowledge-base questions.",
+    "hardChecks": {
+      "minReplyChars": 25,
+      "maxSentences": 2
+    },
+    "minOverallScore": 82,
+    "minCriterionScore": 3,
+    "strictKeywords": [
+      "RAG"
+    ],
+    "bannedPhrases": [
+      "回答を準備しています",
+      "Thinking",
+      "(no response)"
+    ]
+  },
+  {
+    "id": "guest-memory-summary-en",
+    "channel": "guest",
+    "expectedLanguage": "en",
+    "searchMode": "off",
+    "turns": [
+      "My name is Emma.",
+      "My favorite color is blue.",
+      "I want a day trip to Kyoto with a budget of 30,000 yen. I prefer a late start and want to travel by bullet train.",
+      "Summarize my constraints in English using up to six bullet points."
+    ],
+    "rubric": [
+      "The answer is written in clear natural English.",
+      "It retains the key facts from the conversation without dropping important constraints.",
+      "It includes Emma, blue, Kyoto, 30,000 yen, a late start, and bullet train travel.",
+      "The bullet list is readable and does not invent extra constraints."
+    ],
+    "referenceAnswer": "- Name: Emma\n- Favorite color: blue\n- Destination: Kyoto\n- Budget: 30,000 yen\n- Preferred start: late morning\n- Travel mode: bullet train",
+    "hardChecks": {
+      "minReplyChars": 40,
+      "requireList": true,
+      "minListItems": 3,
+      "maxListItems": 6
+    },
+    "minOverallScore": 85,
+    "minCriterionScore": 3,
+    "strictKeywords": [
+      "Emma",
+      "blue",
+      "Kyoto",
+      "30,000",
+      "bullet train"
+    ],
+    "bannedPhrases": [
+      "回答を準備しています",
+      "Thinking",
+      "(no response)"
+    ]
+  },
+  {
+    "id": "auth-short-plan",
+    "channel": "auth",
+    "expectedLanguage": "ja",
+    "searchMode": "off",
+    "turns": [
+      "京都へ日帰り旅行したいです。予算は3万円、朝は遅め、新幹線移動、昼食を1回入れて、見出し付き3項目の短いプランを日本語で提案してください。"
+    ],
+    "rubric": [
+      "見出し付き3項目の短いプランになっていること。",
+      "京都、予算、新幹線、遅め出発、昼食の条件が反映されていること。",
+      "実行可能で読みやすいこと。"
+    ],
+    "referenceAnswer": "1. 遅めに出発: 朝は無理をせず、遅めの新幹線で京都へ向かいます。\n2. 京都で昼食: 京都駅周辺で昼食を1回取り、その後に近場を回ります。\n3. 夕方に帰着: 予算3万円を意識しつつ、日帰りで帰れる短い行程にします。",
+    "hardChecks": {
+      "minReplyChars": 40,
+      "requireList": true,
+      "exactListItems": 3
+    },
+    "minOverallScore": 82,
+    "minCriterionScore": 3,
+    "strictKeywords": [
+      "京都",
+      "3万円",
+      "新幹線"
+    ],
+    "bannedPhrases": [
+      "回答を準備しています",
+      "Thinking",
+      "(no response)"
+    ]
+  }
+]
