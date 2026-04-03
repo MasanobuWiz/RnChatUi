@@ -41,9 +41,20 @@ const {
   requestGithubModelsJson,
   resolveGithubModelsToken,
 } = require('./github-models-utils.js');
-const amplifyConfig = JSON.parse(
-  await fs.readFile(path.resolve(__dirname, '..', 'amplifyconfiguration.json'), 'utf8')
-);
+
+async function readJsonFileIfPresent(filePath) {
+  try {
+    const raw = await fs.readFile(filePath, 'utf8');
+    return JSON.parse(raw);
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
+      return {};
+    }
+    throw error;
+  }
+}
+
+const amplifyConfig = await readJsonFileIfPresent(path.resolve(__dirname, '..', 'amplifyconfiguration.json'));
 const scenarioPath = path.resolve(__dirname, 'chat-judge-scenarios.json');
 const scenarios = JSON.parse(await fs.readFile(scenarioPath, 'utf8'));
 
