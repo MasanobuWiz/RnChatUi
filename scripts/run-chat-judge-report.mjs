@@ -8,6 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const require = createRequire(import.meta.url);
 const scenarios = require('./chat-judge-scenarios.json');
+const { textIncludesNormalized } = require('./chat-judge-core.js');
 
 const judgeCriteria = [
   'instructionFollowing',
@@ -81,20 +82,19 @@ function collectScenarioFailures(scenario, run) {
   const failures = [];
   const finalReply = String(run?.finalReply || '');
   const result = run?.judge || {};
-  const normalizedReply = finalReply.toLocaleLowerCase();
 
   if (finalReply.trim().length <= 12) {
     failures.push('finalReply must be longer than 12 characters.');
   }
 
   for (const phrase of scenario.bannedPhrases || []) {
-    if (finalReply.includes(phrase)) {
+    if (textIncludesNormalized(finalReply, phrase)) {
       failures.push(`finalReply contains banned phrase: ${phrase}`);
     }
   }
 
   for (const keyword of scenario.strictKeywords || []) {
-    if (!normalizedReply.includes(String(keyword).toLocaleLowerCase())) {
+    if (!textIncludesNormalized(finalReply, keyword)) {
       failures.push(`finalReply is missing strict keyword: ${keyword}`);
     }
   }

@@ -5,6 +5,8 @@
 import path from 'path';
 import { spawnSync } from 'child_process';
 
+const { textIncludesNormalized } = require('../scripts/chat-judge-core.js');
+
 const judgeCriteria = [
   'instructionFollowing',
   'contextRetention',
@@ -70,14 +72,13 @@ function runJudgeScenario(scenarioId: string) {
 
 function applyHardAssertions(scenario: (typeof judgeScenarios)[number], finalReply: string) {
   expect(finalReply.trim().length).toBeGreaterThan(12);
-  const normalizedReply = finalReply.toLocaleLowerCase();
 
   for (const phrase of scenario.bannedPhrases || []) {
-    expect(finalReply).not.toContain(phrase);
+    expect(textIncludesNormalized(finalReply, phrase)).toBe(false);
   }
 
   for (const keyword of scenario.strictKeywords || []) {
-    expect(normalizedReply).toContain(String(keyword).toLocaleLowerCase());
+    expect(textIncludesNormalized(finalReply, keyword)).toBe(true);
   }
 
   if (scenario.expectedLanguage === 'ja') {

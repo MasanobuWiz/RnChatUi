@@ -29,6 +29,21 @@ function firstNonEmpty(...values) {
   return '';
 }
 
+function normalizeMatchableText(value) {
+  return String(value || '')
+    .normalize('NFKC')
+    .toLocaleLowerCase()
+    .replace(/([0-9])[,，](?=[0-9])/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function textIncludesNormalized(haystack, needle) {
+  const normalizedNeedle = normalizeMatchableText(needle);
+  if (!normalizedNeedle) return false;
+  return normalizeMatchableText(haystack).includes(normalizedNeedle);
+}
+
 function toPositiveInt(value, fallback) {
   const parsed = Number.parseInt(String(value || ''), 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
@@ -67,6 +82,8 @@ function formatTranscript(messages) {
 function formatHardCheckHints(scenario) {
   const hardChecks = scenario?.hardChecks || {};
   const hints = [];
+  const jsonRequiredKeys = uniqueStrings(hardChecks.jsonRequiredKeys || []);
+  const exactJsonKeys = uniqueStrings(hardChecks.exactJsonKeys || []);
 
   if (scenario?.strictKeywords?.length) {
     hints.push(`Must mention all required facts: ${scenario.strictKeywords.join(', ')}`);
@@ -102,6 +119,22 @@ function formatHardCheckHints(scenario) {
         hints.push('Use a structured list format.');
       }
     }
+  }
+
+  if (hardChecks.requireJsonObject || jsonRequiredKeys.length > 0 || exactJsonKeys.length > 0) {
+    hints.push('Return a single JSON object with no explanatory text.');
+  }
+
+  if (jsonRequiredKeys.length > 0) {
+    hints.push(`JSON must include keys: ${jsonRequiredKeys.join(', ')}.`);
+  }
+
+  if (exactJsonKeys.length > 0) {
+    hints.push(`JSON keys must be exactly: ${exactJsonKeys.join(', ')}.`);
+  }
+
+  if (hardChecks.jsonStringValuesOnly) {
+    hints.push('All JSON values must be strings.');
   }
 
   return hints.length ? hints : ['No extra hard checks beyond the rubric.'];
@@ -168,6 +201,36 @@ function normalizeReplyText(value) {
   return String(value || '').replace(/\r\n/g, '\n').trim();
 }
 
+function stripCodeFence(text) {
+  return String(text || '').trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```$/i, '').trim();
+}
+
+function parseJsonObjectReply(text) {
+  const normalized = stripCodeFence(normalizeReplyText(text));
+  if (!normalized) {
+    return { ok: false, value: null, reason: 'Reply was empty, so a JSON object could not be parsed.' };
+  }
+
+  if (!normalized.startsWith('{') || !normalized.endsWith('}')) {
+    return { ok: false, value: null, reason: 'Reply was not a standalone JSON object.' };
+  }
+
+  try {
+    const parsed = JSON.parse(normalized);
+    if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') {
+      return { ok: false, value: null, reason: 'Reply JSON was valid but was not an object.' };
+    }
+
+    return { ok: true, value: parsed, reason: '' };
+  } catch (error) {
+    return {
+      ok: false,
+      value: null,
+      reason: `Reply was not valid JSON: ${error instanceof Error ? error.message : String(error)}`,
+    };
+  }
+}
+
 function collectStructuredItems(text) {
   return normalizeReplyText(text)
     .split('\n')
@@ -224,8 +287,12 @@ function uniqueStrings(values) {
 
 function evaluateScenarioHardChecks(scenario, finalReply) {
   const reply = normalizeReplyText(finalReply);
-  const replyLower = reply.toLocaleLowerCase();
   const hardChecks = scenario?.hardChecks || {};
+  const jsonRequiredKeys = uniqueStrings(hardChecks.jsonRequiredKeys || []);
+  const exactJsonKeys = uniqueStrings(hardChecks.exactJsonKeys || []);
+  const requiresJsonObject = Boolean(
+    hardChecks.requireJsonObject || jsonRequiredKeys.length > 0 || exactJsonKeys.length > 0 || hardChecks.jsonStringValuesOnly
+  );
   const minReplyChars =
     Number.isFinite(hardChecks.minReplyChars) && hardChecks.minReplyChars > 0
       ? hardChecks.minReplyChars
@@ -237,7 +304,7 @@ function evaluateScenarioHardChecks(scenario, finalReply) {
   for (const keyword of scenario?.strictKeywords || []) {
     const normalizedKeyword = String(keyword || '').trim();
     if (!normalizedKeyword) continue;
-    if (replyLower.includes(normalizedKeyword.toLocaleLowerCase())) {
+    if (textIncludesNormalized(reply, normalizedKeyword)) {
       matchedKeywords.push(normalizedKeyword);
     } else {
       missingKeywords.push(normalizedKeyword);
@@ -247,7 +314,7 @@ function evaluateScenarioHardChecks(scenario, finalReply) {
   for (const phrase of scenario?.bannedPhrases || []) {
     const normalizedPhrase = String(phrase || '').trim();
     if (!normalizedPhrase) continue;
-    if (replyLower.includes(normalizedPhrase.toLocaleLowerCase())) {
+    if (textIncludesNormalized(reply, normalizedPhrase)) {
       bannedPhraseHits.push(normalizedPhrase);
     }
   }
@@ -256,6 +323,8 @@ function evaluateScenarioHardChecks(scenario, finalReply) {
   const sentenceCount = countSentences(reply);
   const listItems = collectStructuredItems(reply);
   const failures = [];
+  let parsedJsonObject = null;
+  let jsonKeys = [];
 
   if (reply.length < minReplyChars) {
     addFailure(
@@ -325,6 +394,49 @@ function evaluateScenarioHardChecks(scenario, finalReply) {
     );
   }
 
+  if (requiresJsonObject) {
+    const parsedJson = parseJsonObjectReply(reply);
+    if (!parsedJson.ok) {
+      addFailure(failures, 'invalid-json-object', parsedJson.reason);
+    } else {
+      parsedJsonObject = parsedJson.value;
+      jsonKeys = Object.keys(parsedJsonObject);
+
+      const missingJsonKeys = jsonRequiredKeys.filter((key) => !Object.prototype.hasOwnProperty.call(parsedJsonObject, key));
+      if (missingJsonKeys.length > 0) {
+        addFailure(failures, 'missing-json-keys', `JSON reply missed required keys: ${missingJsonKeys.join(', ')}.`);
+      }
+
+      if (exactJsonKeys.length > 0) {
+        const missingExactJsonKeys = exactJsonKeys.filter((key) => !jsonKeys.includes(key));
+        const unexpectedJsonKeys = jsonKeys.filter((key) => !exactJsonKeys.includes(key));
+
+        if (missingExactJsonKeys.length > 0 && jsonRequiredKeys.length === 0) {
+          addFailure(failures, 'missing-json-keys', `JSON reply missed required keys: ${missingExactJsonKeys.join(', ')}.`);
+        }
+
+        if (missingExactJsonKeys.length > 0 || unexpectedJsonKeys.length > 0) {
+          addFailure(
+            failures,
+            'unexpected-json-keys',
+            `JSON keys were ${jsonKeys.join(', ') || '(none)'} but expected exactly ${exactJsonKeys.join(', ')}.`
+          );
+        }
+      }
+
+      if (hardChecks.jsonStringValuesOnly) {
+        const nonStringJsonKeys = jsonKeys.filter((key) => typeof parsedJsonObject[key] !== 'string');
+        if (nonStringJsonKeys.length > 0) {
+          addFailure(
+            failures,
+            'non-string-json-values',
+            `JSON values must all be strings. Non-string keys: ${nonStringJsonKeys.join(', ')}.`
+          );
+        }
+      }
+    }
+  }
+
   return {
     passed: failures.length === 0,
     failures,
@@ -332,6 +444,8 @@ function evaluateScenarioHardChecks(scenario, finalReply) {
     sentenceCount,
     listItemCount: listItems.length,
     listItems,
+    jsonKeys,
+    parsedJsonObject,
     matchedKeywords,
     missingKeywords,
     bannedPhraseHits,
@@ -389,6 +503,17 @@ function applyHardFailureCaps(criteria, hardChecks) {
 
   if (failureCodes.has('reply-too-short')) {
     capCriterion(criteria, 'usefulness', 2);
+  }
+
+  if (
+    failureCodes.has('invalid-json-object') ||
+    failureCodes.has('missing-json-keys') ||
+    failureCodes.has('unexpected-json-keys') ||
+    failureCodes.has('non-string-json-values')
+  ) {
+    capCriterion(criteria, 'instructionFollowing', 1);
+    capCriterion(criteria, 'usefulness', 3);
+    capCriterion(criteria, 'languageQuality', 2);
   }
 
   return criteria;
@@ -462,5 +587,7 @@ module.exports = {
   formatTranscript,
   joinUrl,
   normalizeEvaluatorMode,
+  normalizeMatchableText,
+  textIncludesNormalized,
   toPositiveInt,
 };

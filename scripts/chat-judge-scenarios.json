@@ -135,6 +135,140 @@
     ]
   },
   {
+    "id": "guest-missing-info",
+    "channel": "guest",
+    "expectedLanguage": "ja",
+    "searchMode": "off",
+    "turns": [
+      "次の情報だけを使って会議メモを箇条書き3項目でまとめてください。不明な項目は「不明」と書き、推測は禁止です。情報: 会議名は営業定例。開始時刻は10時。場所の記載はありません。項目は会議名、開始時刻、場所です。"
+    ],
+    "rubric": [
+      "会議名、開始時刻、場所の3項目を漏れなく出していること。",
+      "場所は勝手に補完せず、不明と明記していること。",
+      "箇条書き3項目で簡潔にまとまっていること。"
+    ],
+    "referenceAnswer": "- 会議名: 営業定例\n- 開始時刻: 10時\n- 場所: 不明",
+    "hardChecks": {
+      "minReplyChars": 20,
+      "requireList": true,
+      "exactListItems": 3
+    },
+    "minOverallScore": 85,
+    "minCriterionScore": 3,
+    "strictKeywords": [
+      "営業定例",
+      "10時",
+      "不明"
+    ],
+    "bannedPhrases": [
+      "回答を準備しています",
+      "Thinking",
+      "(no response)"
+    ]
+  },
+  {
+    "id": "guest-json-extract",
+    "channel": "guest",
+    "expectedLanguage": "ja",
+    "searchMode": "off",
+    "turns": [
+      "次の条件をJSON objectだけで返してください。キーは task, destination, budget, note の4つだけ、値はすべて文字列にしてください。説明文やコードブロックは禁止です。条件: task=日帰り旅行, destination=京都, budget=30000円, note=朝は遅め。"
+    ],
+    "rubric": [
+      "説明文を付けず、JSON objectだけを返していること。",
+      "キーが task, destination, budget, note の4つだけであること。",
+      "値の内容が条件と一致し、余計な解釈を足していないこと。"
+    ],
+    "referenceAnswer": "{\"task\":\"日帰り旅行\",\"destination\":\"京都\",\"budget\":\"30000円\",\"note\":\"朝は遅め\"}",
+    "hardChecks": {
+      "minReplyChars": 30,
+      "requireJsonObject": true,
+      "exactJsonKeys": [
+        "task",
+        "destination",
+        "budget",
+        "note"
+      ],
+      "jsonStringValuesOnly": true
+    },
+    "minOverallScore": 88,
+    "minCriterionScore": 3,
+    "strictKeywords": [
+      "日帰り旅行",
+      "京都",
+      "30000円",
+      "朝は遅め"
+    ],
+    "bannedPhrases": [
+      "回答を準備しています",
+      "Thinking",
+      "(no response)",
+      "```"
+    ]
+  },
+  {
+    "id": "guest-budget-calc",
+    "channel": "guest",
+    "expectedLanguage": "ja",
+    "searchMode": "off",
+    "turns": [
+      "次の3商品の合計金額と最も高い商品を日本語で2文以内にまとめてください。商品Aは1200円、商品Bは980円、商品Cは1500円です。"
+    ],
+    "rubric": [
+      "合計金額を正しく計算していること。",
+      "最も高い商品を正しく特定していること。",
+      "日本語で2文以内に簡潔にまとまっていること。"
+    ],
+    "referenceAnswer": "合計金額は3680円です。最も高いのは商品Cです。",
+    "hardChecks": {
+      "minReplyChars": 18,
+      "maxSentences": 2
+    },
+    "minOverallScore": 84,
+    "minCriterionScore": 3,
+    "strictKeywords": [
+      "3680円",
+      "商品C"
+    ],
+    "bannedPhrases": [
+      "回答を準備しています",
+      "Thinking",
+      "(no response)"
+    ]
+  },
+  {
+    "id": "guest-missing-info-en",
+    "channel": "guest",
+    "expectedLanguage": "en",
+    "searchMode": "off",
+    "turns": [
+      "Use only the following facts to write exactly three bullet points in English. If a field is unknown, write exactly 'unknown' and do not guess. Facts: the meeting name is Sales Weekly, the start time is 10:00, and no location is provided. The three items must be meeting name, start time, and location."
+    ],
+    "rubric": [
+      "The answer stays in English and uses exactly three bullet points.",
+      "It includes the meeting name, start time, and location fields.",
+      "It explicitly marks the missing location as unknown instead of inventing one."
+    ],
+    "referenceAnswer": "- Meeting name: Sales Weekly\n- Start time: 10:00\n- Location: unknown",
+    "hardChecks": {
+      "minReplyChars": 24,
+      "requireList": true,
+      "exactListItems": 3
+    },
+    "minOverallScore": 85,
+    "minCriterionScore": 3,
+    "strictKeywords": [
+      "Sales Weekly",
+      "10:00",
+      "unknown"
+    ],
+    "bannedPhrases": [
+      "回答を準備しています",
+      "Thinking",
+      "(no response)"
+    ]
+  },
+  {
     "id": "auth-short-plan",
     "channel": "auth",
     "expectedLanguage": "ja",
